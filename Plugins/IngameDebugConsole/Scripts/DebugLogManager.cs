@@ -586,14 +586,14 @@ namespace IngameDebugConsole
 		protected override void OnEnable()
 		{
 			base.OnEnable();
-			if ( Instance != this )
+			if( Instance != this )
 				return;
 
 			if( !receiveLogsWhileInactive )
-				{
-					Application.logMessageReceivedThreaded -= ReceivedLog;
-					Application.logMessageReceivedThreaded += ReceivedLog;
-				}
+			{
+				Application.logMessageReceivedThreaded -= ReceivedLog;
+				Application.logMessageReceivedThreaded += ReceivedLog;
+			}
 
 			if( receiveLogcatLogsInAndroid )
 			{
