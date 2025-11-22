@@ -43,9 +43,8 @@ namespace IngameDebugConsole
 		Never = 2
 	}
 
-	public class DebugLogManager : MonoBehaviour
+	public class DebugLogManager : SingletonBehaviour<DebugLogManager>
 	{
-		public static DebugLogManager Instance { get; private set; }
 
 #pragma warning disable 0649
 		[Header( "Properties" )]
@@ -336,6 +335,8 @@ namespace IngameDebugConsole
 			set { popupManager.gameObject.SetActive( value ); }
 		}
 
+		protected override bool ShouldDestroyOnLoad => !singleton;
+
 		private bool screenDimensionsChanged = true;
 		private float logWindowPreviousWidth;
 
@@ -455,23 +456,8 @@ namespace IngameDebugConsole
 		private DebugLogLogcatListener logcatListener;
 #endif
 
-		private void Awake()
+		protected override void Initialize()
 		{
-			// Only one instance of debug console is allowed
-			if( !Instance )
-			{
-				Instance = this;
-
-				// If it is a singleton object, don't destroy it between scene changes
-				if( singleton )
-					DontDestroyOnLoad( gameObject );
-			}
-			else if( Instance != this )
-			{
-				Destroy( gameObject );
-				return;
-			}
-
 			pooledLogEntries = new Stack<DebugLogEntry>( 64 );
 			pooledLogItems = new Stack<DebugLogItem>( 16 );
 			commandSuggestionInstances = new List<TextMeshProUGUI>( 8 );
@@ -597,16 +583,17 @@ namespace IngameDebugConsole
 #endif
 		}
 
-		private void OnEnable()
+		protected override void OnEnable()
 		{
-			if( Instance != this )
+			base.OnEnable();
+			if ( Instance != this )
 				return;
 
 			if( !receiveLogsWhileInactive )
-			{
-				Application.logMessageReceivedThreaded -= ReceivedLog;
-				Application.logMessageReceivedThreaded += ReceivedLog;
-			}
+				{
+					Application.logMessageReceivedThreaded -= ReceivedLog;
+					Application.logMessageReceivedThreaded += ReceivedLog;
+				}
 
 			if( receiveLogcatLogsInAndroid )
 			{
@@ -677,10 +664,9 @@ namespace IngameDebugConsole
 			PopupEnabled = ( popupVisibility != PopupVisibility.Never );
 		}
 
-		private void OnDestroy()
+		protected override void OnDestroy()
 		{
-			if( Instance == this )
-				Instance = null;
+			base.OnDestroy();
 
 			if( receiveLogsWhileInactive )
 				Application.logMessageReceivedThreaded -= ReceivedLog;
