@@ -7,18 +7,19 @@ namespace IngameDebugConsole
     [DisallowMultipleComponent]
     public abstract class SingletonBehaviour<T> : MonoBehaviour where T : SingletonBehaviour<T>
     {
-        [NonSerialized] bool _initialized;
+        [NonSerialized] bool initialized;
         public static T Instance { get; private set; }
         protected virtual void Awake()
         {
-            _initialized = false;
-            if ( Instance != null && Instance != this )
+            initialized = false;
+            if( Instance != null && Instance != this )
             {
-                Debug.LogWarning( $"Duplicate { typeof(T).Name } found. Destroying { gameObject.name }." );
+                Debug.LogWarning( $"Duplicate { typeof( T ).Name } found. Destroying { gameObject.name }." );
                 Destroy( gameObject );
 
                 return;
             }
+
             InitializeIfNeeded();
         }
 
@@ -29,11 +30,15 @@ namespace IngameDebugConsole
 
         private void InitializeIfNeeded()
         {
-            if ( !Application.isPlaying || _initialized )
+            if( !Application.isPlaying || initialized )
                 return;
+
             Instance = ( T )this;
-            _initialized = true;
-            if ( !ShouldDestroyOnLoad ) DontDestroyOnLoad( gameObject );
+            initialized = true;
+            
+            if( !ShouldDestroyOnLoad )
+                DontDestroyOnLoad( gameObject );
+
             Initialize();
         }
 
@@ -41,7 +46,8 @@ namespace IngameDebugConsole
 
         protected virtual void OnDestroy()
         {
-            if ( Instance == this ) Instance = null;
+            if( Instance == this )
+                Instance = null;
         }
 
         abstract protected bool ShouldDestroyOnLoad { get; }
